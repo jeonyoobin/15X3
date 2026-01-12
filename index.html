@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --bg-clear: #ffffff;
+            --text-main: #2d3436;
+            --point-blue: #3498db;
+            --point-green: #2ecc71;
+            --nm-out: 8px 8px 16px #e0e0e0, -8px -8px 16px #ffffff;
+            --nm-in: inset 4px 4px 8px #e0e0e0, inset -4px -4px 8px #ffffff;
+            --nm-btn: 4px 4px 10px #e0e0e0, -4px -4px 10px #ffffff;
+            --nm-btn-hover: 6px 6px 15px #d1d1d1, -6px -6px 15px #ffffff;
+        }
+
+        body {
+            background: var(--bg-color); color: var(--text-main);
+            font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; padding: 0;
+            height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center;
+            overflow: hidden; user-select: none; transition: background 1.5s ease;
+        }
+
+        .top-menu { position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9500; }
+        .menu-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777; transition: 0.2s; border: none; outline: none; }
+        .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
+       
+        .header { margin-top: 55px; text-align: center; transition: opacity 0.3s; cursor: pointer; }
+        .header.locked { pointer-events: none; cursor: default; } 
+        .header h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #333; }
+
+        .circle-container { position: relative; width: 280px; height: 280px; margin-top: 40px; display: flex; align-items: center; justify-content: center; transition: none !important; animation: none !important; }
+        .circle-container.hidden { display: none !important; opacity: 0; }
+       
+        .outer-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); }
+        .circle-base { position: absolute; width: 90%; height: 90%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-in); overflow: hidden; }
+        .color-layer { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: 2; pointer-events: none; opacity: 0.7; }
+        .divider-container { position: absolute; width: 90%; height: 90%; border-radius: 50%; z-index: 100; pointer-events: none; -webkit-mask-image: radial-gradient(circle 35px, transparent 100%, black 100%); }
+        .divider { position: absolute; width: 1.5px; height: 50%; background: rgba(255,255,255,0.8); left: 50%; top: 0; transform-origin: bottom center; }
+       
+        .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; }
+        .click-area.c1 { transform: rotate(-60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
+        .click-area.c2 { transform: rotate(60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
+        .click-area.c3 { transform: rotate(180deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
+
+        .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 60px; transition: color 0.2s ease; }
+        .click-area:hover + .slot-content:not(.active-text) { color: #888; }
+        .slot-content.t1 { top: 90px; left: 45px; transform: none; }
+        .slot-content.t2 { top: 90px; right: 45px; transform: none; }
+        .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); }
+        .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+        .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: default; }
+        .center-btn.ready { cursor: pointer; }
+        .center-btn.ready:hover { background: #ffffff; box-shadow: var(--nm-btn-hover); transform: scale(1.05); }
+
+        .icon-thumb { width: 30px; height: 30px; fill: none; stroke: #888; stroke-width: 2.5; transition: 0.3s; }
+        .dots-container { display: flex; gap: 4px; pointer-events: none; }
+        .dot { width: 6px; height: 6px; background-color: #ccc; border-radius: 50%; animation: dot-blink 1.4s infinite both; }
+        @keyframes dot-blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
+
+        #config-mode { display: none; flex-direction: column; align-items: center; margin-top: 40px; }
+        .knob-outer { position: relative; width: 220px; height: 220px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); display: flex; align-items: center; justify-content: center; cursor: grab; }
+        .knob-inner { position: absolute; width: 140px; height: 140px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; cursor: pointer; transition: 0.2s; }
+        .knob-indicator { position: absolute; top: 15px; width: 4px; height: 15px; background: var(--point-blue); border-radius: 2px; transform-origin: 50% 95px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
+        .knob-ticks { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: 5; }
+        .tick-hitbox { position: absolute; width: 30px; height: 30px; left: 50%; top: 0; transform-origin: 15px 110px; cursor: pointer; display: flex; justify-content: center; align-items: flex-start; }
+        .tick { width: 2px; height: 12px; background: #bbb; border-radius: 1px; margin-top: 5px; }
+        .knob-value { font-size: 44px; font-weight: 900; color: #333; pointer-events: none; }
+        .knob-label { font-size: 11px; font-weight: 800; color: #aaa; margin-top: 2px; pointer-events: none; }
+
+        .timer-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9000; background: var(--bg-color); }
+        .noise-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/p6-mini.png'); opacity: 0.3; z-index: 9001; pointer-events: none; mix-blend-mode: multiply; }
+        .phase-indicator { position: absolute; bottom: 100px; font-size: 14px; font-weight: 800; color: #aaa; letter-spacing: 2px; z-index: 9100; display: flex; align-items: center; justify-content: center; height: 50px; }
+        .focus-text-container { position: relative; z-index: 9100; cursor: pointer; text-align: center; height: 100px; display: flex; align-items: center; justify-content: center; margin-top: -80px; }
+        .focus-task-text { font-size: 42px; font-weight: 900; color: #333; transition: filter 0.5s ease; filter: blur(8px); white-space: nowrap; }
+        .skip-btn-wrap { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444; transition: 0.2s; }
+        .skip-btn-wrap:hover { transform: scale(1.1); box-shadow: var(--nm-btn-hover); color: #000; }
+
+        #boat-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; z-index: 9800; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+        .boat-icon { width: 65px; height: 65px; fill: #444; opacity: 0.7; animation: boat-float 3.5s ease-in-out infinite; }
+        .wave-icon { width: 80px; margin-top: -15px; fill: #3498db; opacity: 0.4; animation: wave-move 2.5s ease-in-out infinite; }
+        @keyframes boat-float { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
+        @keyframes wave-move { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
+        .ending-active { background: linear-gradient(135deg, #e0f2fe 0%, #f5f5f7 50%, #f0fdf4 100%) !important; }
+
+        #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        .modal-content { background: var(--bg-color); padding: 35px; border-radius: 28px; box-shadow: var(--nm-out); width: 240px; }
+        .modal-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--point-blue); text-align: center; font-size: 18px; font-weight: 700; outline: none; color: #333; }
+    </style>
+</head>
+<body>
+    <div id="boat-container">
+        <svg class="boat-icon" viewBox="0 0 24 24"><path d="M4 18h16l1-4H3l1 4zM12 2v12m0-12L5 9h7"/></svg>
+        <svg class="wave-icon" viewBox="0 0 100 20"><path d="M0 10 Q25 0 50 10 T100 10 L100 20 L0 20 Z"/></svg>
+    </div>
+
+    <div class="top-menu">
+        <div class="menu-btn" onclick="resetAndStopTimer()"><div style="width:8px;height:8px;background:#555;border-radius:1px;"></div></div>
+        <div class="menu-btn" onclick="window.close()">✕</div>
+    </div>
+
+    <div class="header" id="main-header" ondblclick="enterConfig()">
+        <h1 id="header-title">15 X 3</h1>
+    </div>
+
+    <div class="circle-container" id="main-widget">
+        <div class="outer-ring"></div>
+        <div class="circle-base"><div class="color-layer" id="color-layer"></div></div>
+        <div class="divider-container">
+            <div class="divider" style="transform:rotate(0deg)"></div>
+            <div class="divider" style="transform:rotate(120deg)"></div>
+            <div class="divider" style="transform:rotate(240deg)"></div>
+        </div>
+        <div class="click-area c1" onclick="openEdit(0)"></div><div class="slot-content t1" id="txt-0">TASK 1</div>
+        <div class="click-area c2" onclick="openEdit(1)"></div><div class="slot-content t2" id="txt-1">TASK 2</div>
+        <div class="click-area c3" onclick="openEdit(2)"></div><div class="slot-content t3" id="txt-2">TASK 3</div>
+        <div class="center-btn" id="main-btn-container" onclick="handleCenterClick()"></div>
+    </div>
+
+    <div id="config-mode">
+        <div class="knob-outer" id="knob-area">
+            <div class="knob-ticks" id="knob-ticks"></div>
+            <div class="knob-indicator" id="knob-pointer"></div>
+            <div class="knob-inner" onclick="nextConfigStep()">
+                <div class="knob-value" id="knob-num">15</div>
+                <div class="knob-label" id="knob-step-label">FOCUS MIN</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="timer-screen" id="timer-screen">
+        <div class="phase-indicator" id="phase-indicator">1 / 3</div>
+        <div class="noise-overlay" id="noise-overlay"></div>
+        <div class="focus-text-container" id="focus-container" onclick="togglePause()" ondblclick="cheatNext()" onmouseenter="showTime(true)" onmouseleave="showTime(false)">
+            <div class="focus-task-text" id="focus-task-display">READY</div>
+        </div>
+    </div>
+
+    <div id="edit-modal">
+        <div class="modal-content"><input type="text" id="modal-input" class="modal-input" onkeypress="handleEnter(event)"></div>
+    </div>
+
+    <script>
+        // [변수 설정]
+        let tasks = ["", "", ""];
+        let focusTime = 15; let restTime = 3;
+        let currentIdx = -1; let remainTime = 0;
+        let myInterval = null; let isPaused = false; let isHoveringTime = false;
+        let currentPhase = 0; let isConfiguring = false; let configStep = 0; let tempVal = 15;
+        let currentRotation = 0; let isEnding = false;
+
+        const arrowIcon = `<div class="skip-btn-wrap" onclick="nextPhase(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>`;
+
+        // [소리 재생 함수 수정 - 일반 웹용]
+        // 유빈아! 소리 파일들은 index.html과 같은 폴더에 A.wav, B.wav... 이름으로 넣어줘야 해!
+        function playSnd(fileName) {
+            try {
+                const audio = new Audio(fileName);
+                audio.play().catch(e => console.log("사용자 클릭 전에는 소리가 안 날 수 있어:", e));
+            } catch(e) { console.log("소리 재생 실패"); }
+        }
+
+        // [저장/불러오기 수정 - localStorage 사용]
+        window.onload = function() {
+            const savedData = localStorage.getItem('yubin_app_data');
+            if (savedData) {
+                const parsed = JSON.parse(savedData);
+                tasks = parsed.tasks || ["", "", ""];
+                focusTime = parsed.focusTime || 15;
+                restTime = parsed.restTime || 3;
+                updateHeader(); render();
+            }
+        };
+
+        function save() {
+            const data = { tasks, focusTime, restTime };
+            localStorage.setItem('yubin_app_data', JSON.stringify(data));
+        }
+
+        // [이하 유빈이가 고생해서 만든 로직들 - 핵심 기능 유지]
+
+        function updateTicks() {
+            const container = document.getElementById('knob-ticks'); container.innerHTML = "";
+            for(let i=0; i<12; i++) {
+                const box = document.createElement('div'); box.className = 'tick-hitbox';
+                box.style.transform = `translateX(-15px) rotate(${i * 30}deg)`;
+                const tick = document.createElement('div'); tick.className = 'tick';
+                box.appendChild(tick);
+                box.onclick = (e) => { e.stopPropagation(); let val = (i === 0) ? (configStep === 0 ? 60 : 12) : (configStep === 0 ? i * 5 : i); if (tempVal !== val) { tempVal = val; playSnd('G.wav'); updateKnobUI(true); } };
+                container.appendChild(box);
+            }
+        }
+
+        function updateHeader() { document.getElementById('header-title').innerText = `${focusTime} X ${restTime}`; }
+        
+        function render() {
+            let count = 0;
+            const container = document.getElementById('main-btn-container');
+            const layer = document.getElementById('color-layer');
+            tasks.forEach((task, i) => {
+                const txt = document.getElementById(`txt-${i}`);
+                if (task && task.trim() !== "") {
+                    txt.innerText = "READY"; txt.classList.add('active-text'); count++;
+                } else {
+                    txt.innerText = `TASK ${i+1}`; txt.classList.remove('active-text');
+                }
+            });
+            const s = tasks.map(t => t ? 'var(--point-blue)' : 'transparent');
+            layer.style.background = `conic-gradient(from 0deg, ${s[1]} 0deg 120deg, ${s[2]} 120deg 240deg, ${s[0]} 240deg 360deg)`;
+            if (count === 3) { container.innerHTML = `<svg class="icon-thumb" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`; container.classList.add('ready'); }
+            else { container.innerHTML = count > 0 ? `<div class="dots-container"><div class="dot" style="animation-delay:0s"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div>` : ""; container.classList.remove('ready'); }
+        }
+
+        function enterConfig() {
+            isConfiguring = true; configStep = 0; tempVal = focusTime; currentRotation = (focusTime/60)*360;
+            document.getElementById('main-widget').classList.add('hidden');
+            document.getElementById('config-mode').style.display = 'flex';
+            document.getElementById('knob-pointer').style.background = "var(--point-blue)";
+            document.getElementById('knob-step-label').innerText = "FOCUS MIN";
+            updateTicks(); updateKnobUI(false);
+        }
+
+        function nextConfigStep() {
+            if (configStep === 0) {
+                focusTime = tempVal; configStep = 1; tempVal = restTime; currentRotation = (restTime/12)*360;
+                document.getElementById('knob-step-label').innerText = "REST MIN";
+                document.getElementById('knob-pointer').style.background = "var(--point-green)";
+                updateTicks(); updateKnobUI(false);
+            } else {
+                restTime = tempVal; isConfiguring = false;
+                document.getElementById('config-mode').style.display = 'none';
+                document.getElementById('main-widget').classList.remove('hidden');
+                updateHeader(); save();
+            }
+        }
+
+        let isDragging = false;
+        const knobArea = document.getElementById('knob-area');
+        knobArea.onmousedown = () => isDragging = true;
+        window.onmouseup = () => isDragging = false;
+        window.onmousemove = (e) => { if (isDragging && isConfiguring) handleKnobMove(e.clientX, e.clientY); };
+
+        knobArea.onwheel = (e) => {
+            if (!isConfiguring) return;
+            e.preventDefault();
+            let step = configStep === 0 ? 5 : 1;
+            let dir = e.deltaY < 0 ? step : -step;
+            let newVal = tempVal + dir;
+            if (newVal > (configStep===0?60:12)) newVal = (configStep===0?5:1);
+            else if (newVal < (configStep===0?5:1)) newVal = (configStep===0?60:12);
+            if (tempVal !== newVal) { tempVal = newVal; playSnd('G.wav'); updateKnobUI(true); }
+        };
+
+        function handleKnobMove(clientX, clientY) {
+            const rect = knobArea.getBoundingClientRect();
+            const angle = Math.atan2(clientY - (rect.top + rect.height / 2), clientX - (rect.left + rect.width / 2)) * 180 / Math.PI + 90;
+            let normalizedAngle = (angle + 360) % 360;
+            let newVal;
+            if (configStep === 0) { newVal = Math.round((normalizedAngle / 360) * 12) * 5; if (newVal === 0) newVal = 60; }
+            else { newVal = Math.round((normalizedAngle / 360) * 12); if (newVal === 0) newVal = 12; }
+            if (tempVal !== newVal) { tempVal = newVal; playSnd('G.wav'); updateKnobUI(true); }
+        }
+
+        function updateKnobUI(useSmartRotate) {
+            document.getElementById('knob-num').innerText = tempVal;
+            const max = configStep === 0 ? 60 : 12;
+            let targetAngle = (tempVal / max) * 360;
+            if (useSmartRotate) { let diff = (targetAngle - (currentRotation % 360) + 540) % 360 - 180; currentRotation += diff; }
+            else { currentRotation = targetAngle; }
+            document.getElementById('knob-pointer').style.transform = `rotate(${currentRotation}deg)`;
+        }
+
+        function handleCenterClick() { if (tasks.filter(t => t.trim() !== "").length === 3) startTimer(); }
+        
+        function startTimer() {
+            playSnd('A.wav'); currentPhase = 0; isEnding = false;
+            const PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
+            remainTime = PHASES[0]; isPaused = false;
+            document.getElementById('main-widget').classList.add('hidden');
+            document.getElementById('main-header').style.opacity = '0';
+            document.getElementById('main-header').classList.add('locked');
+            document.getElementById('timer-screen').style.display = 'flex';
+            if (myInterval) clearInterval(myInterval);
+            myInterval = setInterval(() => { if (!isPaused) { remainTime--; updateDisplay(PHASES); if (remainTime <= 0) nextPhase(null, PHASES); } }, 1000);
+            updateDisplay(PHASES);
+        }
+
+        function updateDisplay(PHASES) {
+            if (!PHASES) PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
+            const display = document.getElementById('focus-task-display');
+            const noise = document.getElementById('noise-overlay');
+            const screen = document.getElementById('timer-screen');
+            const indicator = document.getElementById('phase-indicator');
+            const isRest = currentPhase % 2 !== 0;
+            const total = PHASES[currentPhase];
+            const progress = 1 - (remainTime / total);
+            indicator.innerHTML = isRest ? arrowIcon : `${Math.floor(currentPhase/2) + 1} / 3`;
+            if (isPaused || isHoveringTime) {
+                const m = Math.floor(remainTime / 60); const s = remainTime % 60;
+                display.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+            } else { display.innerText = isRest ? "REST" : tasks[Math.floor(currentPhase/2)]; }
+            if (isPaused) { display.style.filter = "blur(8px)"; noise.style.opacity = "0.3"; }
+            else {
+                if (isRest) { display.style.filter = "blur(0px)"; noise.style.opacity = "0"; screen.style.background = "var(--bg-clear)"; }
+                else { display.style.filter = `blur(${(1-progress)*8}px)`; noise.style.opacity = (1-progress)*0.4; screen.style.background = progress > 0.8 ? 'var(--bg-clear)' : 'var(--bg-color)'; }
+            }
+        }
+
+        function cheatNext() { remainTime = 0; }
+        function togglePause() { isPaused = !isPaused; playSnd(isPaused ? 'B.wav' : 'F.wav'); updateDisplay(); }
+        function showTime(val) { isHoveringTime = val; if(currentPhase < 5) updateDisplay(); }
+
+        function nextPhase(e, PHASES) {
+            if (e) e.stopPropagation();
+            if (!PHASES) PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
+            currentPhase++;
+            if (currentPhase >= PHASES.length) { finishCelebration(); }
+            else { remainTime = PHASES[currentPhase]; playSnd(currentPhase % 2 !== 0 ? 'C.wav' : 'D.wav'); updateDisplay(PHASES); }
+        }
+
+        function finishCelebration() {
+            if (isEnding) return;
+            isEnding = true;
+            playSnd('E.wav');
+            document.getElementById('timer-screen').style.display = 'none';
+            document.getElementById('main-header').style.opacity = '0';
+            document.getElementById('main-header').classList.add('locked');
+            document.getElementById('main-widget').classList.add('hidden');
+            document.body.classList.add('ending-active');
+            document.getElementById('boat-container').style.display = 'flex';
+            setTimeout(() => {
+                document.body.classList.remove('ending-active');
+                document.getElementById('boat-container').style.display = 'none';
+                resetAndStopTimer();
+            }, 23000);
+        }
+
+        function resetAndStopTimer() {
+            clearInterval(myInterval); tasks = ["", "", ""]; save();
+            const widget = document.getElementById('main-widget');
+            widget.classList.remove('hidden');
+            document.getElementById('main-header').style.opacity = '1';
+            document.getElementById('main-header').classList.remove('locked');
+            document.getElementById('timer-screen').style.display = 'none';
+            document.getElementById('boat-container').style.display = 'none';
+            isPaused = false; isEnding = false; render();
+        }
+
+        function openEdit(idx) { currentIdx = idx; document.getElementById('modal-input').value = tasks[idx]; document.getElementById('edit-modal').style.display = 'flex'; setTimeout(()=>document.getElementById('modal-input').focus(),100); }
+        function closeEdit() { tasks[currentIdx] = document.getElementById('modal-input').value; document.getElementById('edit-modal').style.display = 'none'; render(); save(); }
+        function handleEnter(e) { if (e.key === 'Enter') closeEdit(); }
+        document.getElementById('edit-modal').onclick = function(e) { if(e.target === this) closeEdit(); };
+    </script>
+</body>
+</html>
