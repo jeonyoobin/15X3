@@ -24,20 +24,20 @@
         .top-menu { position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9500; }
         .menu-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777; transition: 0.2s; border: none; outline: none; }
         .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
-       
+        
         .header { margin-top: 55px; text-align: center; transition: opacity 0.3s; cursor: pointer; }
         .header.locked { pointer-events: none; cursor: default; } 
         .header h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #333; }
 
         .circle-container { position: relative; width: 280px; height: 280px; margin-top: 40px; display: flex; align-items: center; justify-content: center; transition: none !important; animation: none !important; }
         .circle-container.hidden { display: none !important; opacity: 0; }
-       
+        
         .outer-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); }
         .circle-base { position: absolute; width: 90%; height: 90%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-in); overflow: hidden; }
         .color-layer { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: 2; pointer-events: none; opacity: 0.7; }
         .divider-container { position: absolute; width: 90%; height: 90%; border-radius: 50%; z-index: 100; pointer-events: none; -webkit-mask-image: radial-gradient(circle 35px, transparent 100%, black 100%); }
         .divider { position: absolute; width: 1.5px; height: 50%; background: rgba(255,255,255,0.8); left: 50%; top: 0; transform-origin: bottom center; }
-       
+        
         .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; }
         .click-area.c1 { transform: rotate(-60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c2 { transform: rotate(60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
@@ -152,8 +152,7 @@
 
         const arrowIcon = `<div class="skip-btn-wrap" onclick="nextPhase(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>`;
 
-        // [소리 재생 함수 수정 - 일반 웹용]
-        // 유빈아! 소리 파일들은 index.html과 같은 폴더에 A.wav, B.wav... 이름으로 넣어줘야 해!
+        // [소리 재생 함수]
         function playSnd(fileName) {
             try {
                 const audio = new Audio(fileName);
@@ -161,15 +160,20 @@
             } catch(e) { console.log("소리 재생 실패"); }
         }
 
-        // [저장/불러오기 수정 - localStorage 사용]
+        // [창 크기 고정 및 데이터 불러오기 통합]
         window.onload = function() {
+            // 1. 창 크기 조정 시도
+            window.resizeTo(400, 500);
+
+            // 2. localStorage에서 데이터 불러오기
             const savedData = localStorage.getItem('yubin_app_data');
             if (savedData) {
                 const parsed = JSON.parse(savedData);
                 tasks = parsed.tasks || ["", "", ""];
                 focusTime = parsed.focusTime || 15;
                 restTime = parsed.restTime || 3;
-                updateHeader(); render();
+                updateHeader();
+                render();
             }
         };
 
@@ -178,8 +182,7 @@
             localStorage.setItem('yubin_app_data', JSON.stringify(data));
         }
 
-        // [이하 유빈이가 고생해서 만든 로직들 - 핵심 기능 유지]
-
+        // [핵심 로직]
         function updateTicks() {
             const container = document.getElementById('knob-ticks'); container.innerHTML = "";
             for(let i=0; i<12; i++) {
@@ -352,6 +355,5 @@
         function handleEnter(e) { if (e.key === 'Enter') closeEdit(); }
         document.getElementById('edit-modal').onclick = function(e) { if(e.target === this) closeEdit(); };
     </script>
-</body>  
-
+</body>
 </html>
