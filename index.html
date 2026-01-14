@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>15 X 3 - 유빈</title>
     <style>
         :root {
             --bg-color: #f5f5f7;
@@ -19,12 +20,10 @@
         body {
             background: var(--bg-color); color: var(--text-main);
             font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; padding: 0;
-            /* ZEP 창 크기에 맞게 꽉 차도록 설정 */
             height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center;
             overflow: hidden; user-select: none; transition: background 1.5s ease;
         }
 
-        /* 1. 상단 메뉴: X 버튼과 리셋 버튼 위치 유지 및 툴팁 제외 */
         .top-menu { position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9500; }
         .menu-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777; transition: 0.2s; border: none; outline: none; }
         .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
@@ -53,7 +52,6 @@
         .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); }
         .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-        /* 2. 중앙 버튼: 엘리먼트 정중앙 배치 보장 */
         .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: default; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .center-btn.ready { cursor: pointer; }
         .center-btn.ready:hover { background: #ffffff; box-shadow: var(--nm-btn-hover); transform: translate(-50%, -50%) scale(1.05); }
@@ -76,8 +74,6 @@
         .timer-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9000; background: var(--bg-color); }
         .noise-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/p6-mini.png'); opacity: 0.3; z-index: 9001; pointer-events: none; mix-blend-mode: multiply; }
         .phase-indicator { position: absolute; bottom: 100px; font-size: 14px; font-weight: 800; color: #aaa; letter-spacing: 2px; z-index: 9100; display: flex; align-items: center; justify-content: center; height: 50px; }
-        
-        /* 3. 재생/일시정지 섹션 디자인 유지 */
         .focus-text-container { position: relative; z-index: 9100; cursor: pointer; text-align: center; height: 100px; display: flex; align-items: center; justify-content: center; margin-top: -80px; }
         .focus-task-text { font-size: 42px; font-weight: 900; color: #333; transition: filter 0.5s ease; filter: blur(8px); white-space: nowrap; }
         .skip-btn-wrap { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444; transition: 0.2s; }
@@ -156,26 +152,44 @@
         let currentRotation = 0; let isEnding = false;
         let endingTimer = null;
 
-        // 화살표 아이콘 (차분한 애니메이션 적용을 위해 유지)
+        // 효과음 재생 객체들 (현재 실행 중인 소리를 추적하기 위함)
+        let activeAudios = [];
+
+        // [수정] 깃허브에서 직접 소리 재생하는 방식
+        function playZepSound(fileName) {
+            const audio = new Audio(fileName + '.wav');
+            activeAudios.push(audio);
+            audio.play().catch(e => console.log("소리 재생을 위해 화면을 한 번 클릭해주세요."));
+            
+            // 재생이 끝나면 배열에서 제거
+            audio.onended = () => {
+                activeAudios = activeAudios.filter(a => a !== audio);
+            };
+        }
+
+        // [수정] 모든 소리 즉시 정지
+        function killSound() {
+            activeAudios.forEach(audio => {
+                audio.pause();
+                audio.currentTime = 0;
+            });
+            activeAudios = [];
+        }
+
         const arrowIcon = `<div class="skip-btn-wrap" onclick="nextPhase(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>`;
 
-        // ZEP 전용 사운드 함수
-        function playZepSound(fileName) { window.parent.postMessage({ type: 'playSound', file: fileName }, '*'); }
-        
-        // 사운드 즉시 중단
-        function killSound() { window.parent.postMessage({ type: 'stopSound' }, '*'); }
-
-        window.onload = function() { window.parent.postMessage({ type: 'ready' }, '*'); };
-
-        window.addEventListener('message', function(e) {
-            if (e.data.type === 'loadData') {
-                tasks = e.data.data.tasks || ["", "", ""];
-                focusTime = e.data.data.focusTime || 15; restTime = e.data.data.restTime || 3;
+        window.onload = function() {
+            // 로컬 스토리지에서 데이터 로드 (깃허브 페이지용)
+            const saved = localStorage.getItem('15x3_data');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                tasks = parsed.tasks || ["", "", ""];
+                focusTime = parsed.focusTime || 15;
+                restTime = parsed.restTime || 3;
                 updateHeader(); render();
             }
-        });
+        };
 
-        // 다이얼(노브) 틱 업데이트
         function updateTicks() {
             const container = document.getElementById('knob-ticks'); container.innerHTML = "";
             for(let i=0; i<12; i++) {
@@ -189,7 +203,6 @@
         }
 
         function updateHeader() { document.getElementById('header-title').innerText = `${focusTime} X ${restTime}`; }
-
         function render() {
             let count = 0;
             const container = document.getElementById('main-btn-container');
@@ -204,18 +217,10 @@
             });
             const s = tasks.map(t => t ? 'var(--point-blue)' : 'transparent');
             layer.style.background = `conic-gradient(from 0deg, ${s[1]} 0deg 120deg, ${s[2]} 120deg 240deg, ${s[0]} 240deg 360deg)`;
-            
-            // 모든 단계 완료 시 중앙 버튼 아이콘 변경 (Thumb up)
-            if (count === 3) { 
-                container.innerHTML = `<svg class="icon-thumb" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`; 
-                container.classList.add('ready'); 
-            } else { 
-                container.innerHTML = count > 0 ? `<div class="dots-container"><div class="dot" style="animation-delay:0s"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div>` : ""; 
-                container.classList.remove('ready'); 
-            }
+            if (count === 3) { container.innerHTML = `<svg class="icon-thumb" viewBox="0 0 24 24"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`; container.classList.add('ready'); }
+            else { container.innerHTML = count > 0 ? `<div class="dots-container"><div class="dot" style="animation-delay:0s"></div><div class="dot" style="animation-delay:0.2s"></div><div class="dot" style="animation-delay:0.4s"></div></div>` : ""; container.classList.remove('ready'); }
         }
 
-        // 설정 모드 진입 (더블 클릭)
         function enterConfig() {
             isConfiguring = true; configStep = 0; tempVal = focusTime; currentRotation = (focusTime/60)*360;
             document.getElementById('main-widget').classList.add('hidden');
@@ -276,7 +281,6 @@
         }
 
         function handleCenterClick() { if (tasks.filter(t => t.trim() !== "").length === 3) startTimer(); }
-
         function startTimer() {
             playZepSound('A'); currentPhase = 0; isEnding = false;
             const PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
@@ -323,7 +327,6 @@
             else { remainTime = PHASES[currentPhase]; playZepSound(currentPhase % 2 !== 0 ? 'C' : 'D'); updateDisplay(PHASES); }
         }
 
-        // 모든 단계 완료 연출
         function finishCelebration() {
             if (isEnding) return;
             isEnding = true;
@@ -338,9 +341,8 @@
             endingTimer = setTimeout(() => { resetAndStopTimer(); }, 23000);
         }
 
-        // 초기화 및 정지
         function resetAndStopTimer() {
-            killSound(); 
+            killSound();
             if (endingTimer) clearTimeout(endingTimer);
             if (myInterval) clearInterval(myInterval);
             tasks = ["", "", ""]; save();
@@ -358,11 +360,21 @@
         function closeEdit() { tasks[currentIdx] = document.getElementById('modal-input').value; document.getElementById('edit-modal').style.display = 'none'; render(); save(); }
         function handleEnter(e) { if (e.key === 'Enter') closeEdit(); }
         document.getElementById('edit-modal').onclick = function(e) { if(e.target === this) closeEdit(); };
-        function save() { window.parent.postMessage({ type: 'saveData', data: { tasks, focusTime, restTime } }, '*'); }
+        
+        function save() {
+            // 깃허브 페이지를 위한 로컬 스토리지 저장
+            localStorage.setItem('15x3_data', JSON.stringify({ tasks, focusTime, restTime }));
+            // ZEP을 위한 메시지 전송
+            window.parent.postMessage({ type: 'saveData', data: { tasks, focusTime, restTime } }, '*');
+        }
         
         function exitApp() {
             killSound();
             window.parent.postMessage({ type: 'close' }, '*');
+            // 깃허브 웹에서 테스트 시 알림
+            if (window.location.hostname !== 'zep.us') {
+                alert("앱 종료 (ZEP 환경에서만 실제로 닫힙니다)");
+            }
         }
     </script>
 </body>
