@@ -24,15 +24,30 @@
             overflow: hidden; user-select: none; transition: background 1.5s ease;
         }
 
-        .top-menu { position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9500; }
+        /* 드래그 방지 설정 (버튼 클릭 등을 위해 기본은 no-drag) */
+        .top-menu { 
+            position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9500; 
+            -webkit-app-region: no-drag; 
+        }
         .menu-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777; transition: 0.2s; border: none; outline: none; }
         .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
         
-        .header { margin-top: 55px; text-align: center; transition: opacity 0.3s; cursor: pointer; }
-        .header.locked { pointer-events: none; cursor: default; }
-        .header h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #333; }
+        /* [수정] 헤더 영역을 창 이동 손잡이로 설정 */
+        .header { 
+            margin-top: 0; 
+            padding-top: 55px; 
+            width: 100%;
+            text-align: center; 
+            transition: opacity 0.3s; 
+            cursor: grab; 
+            -webkit-app-region: drag; 
+        }
+        .header:active { cursor: grabbing; }
+        .header.locked { pointer-events: none; cursor: default; -webkit-app-region: no-drag; }
+        /* 제목 글자 자체는 더블클릭 설정을 위해 드래그 제외 */
+        .header h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #333; display: inline-block; -webkit-app-region: no-drag; }
 
-        .circle-container { position: relative; width: 280px; height: 280px; margin-top: 40px; display: flex; align-items: center; justify-content: center; }
+        .circle-container { position: relative; width: 280px; height: 280px; margin-top: 40px; display: flex; align-items: center; justify-content: center; -webkit-app-region: no-drag; }
         .circle-container.hidden { display: none !important; opacity: 0; }
         
         .outer-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); }
@@ -66,7 +81,7 @@
         .dot { width: 6px; height: 6px; background-color: #ccc; border-radius: 50%; animation: dot-blink 1.4s infinite both; }
         @keyframes dot-blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
 
-        #config-mode { display: none; flex-direction: column; align-items: center; margin-top: 40px; }
+        #config-mode { display: none; flex-direction: column; align-items: center; margin-top: 40px; -webkit-app-region: no-drag; }
         .knob-outer { position: relative; width: 220px; height: 220px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); display: flex; align-items: center; justify-content: center; cursor: grab; }
         .knob-inner { position: absolute; width: 140px; height: 140px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; cursor: pointer; transition: 0.2s; }
         .knob-indicator { position: absolute; top: 15px; width: 4px; height: 15px; background: var(--point-blue); border-radius: 2px; transform-origin: 50% 95px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
@@ -76,22 +91,22 @@
         .knob-value { font-size: 44px; font-weight: 900; color: #333; pointer-events: none; }
         .knob-label { font-size: 11px; font-weight: 800; color: #aaa; margin-top: 2px; pointer-events: none; }
 
-        .timer-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9000; background: var(--bg-color); }
+        .timer-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 9000; background: var(--bg-color); -webkit-app-region: drag; }
         .noise-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://www.transparenttextures.com/patterns/p6-mini.png'); opacity: 0.3; z-index: 9001; pointer-events: none; mix-blend-mode: multiply; }
-        .phase-indicator { position: absolute; bottom: 100px; font-size: 14px; font-weight: 800; color: #aaa; letter-spacing: 2px; z-index: 9100; display: flex; align-items: center; justify-content: center; height: 50px; }
-        .focus-text-container { position: relative; z-index: 9100; cursor: pointer; text-align: center; height: 100px; display: flex; align-items: center; justify-content: center; margin-top: -80px; }
+        .phase-indicator { position: absolute; bottom: 100px; font-size: 14px; font-weight: 800; color: #aaa; letter-spacing: 2px; z-index: 9100; display: flex; align-items: center; justify-content: center; height: 50px; -webkit-app-region: no-drag; }
+        .focus-text-container { position: relative; z-index: 9100; cursor: pointer; text-align: center; height: 100px; display: flex; align-items: center; justify-content: center; margin-top: -80px; -webkit-app-region: no-drag; }
         .focus-task-text { font-size: 42px; font-weight: 900; color: #333; transition: filter 0.5s ease; filter: blur(8px); white-space: nowrap; }
         .skip-btn-wrap { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444; transition: 0.2s; }
         .skip-btn-wrap:hover { transform: scale(1.1); box-shadow: var(--nm-btn-hover); color: #000; }
 
-        #boat-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; z-index: 9800; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+        #boat-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; z-index: 9800; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; -webkit-app-region: drag; }
         .boat-icon { width: 65px; height: 65px; fill: #444; opacity: 0.7; animation: boat-float 3.5s ease-in-out infinite; }
         .wave-icon { width: 80px; margin-top: -15px; fill: #3498db; opacity: 0.4; animation: wave-move 2.5s ease-in-out infinite; }
         @keyframes boat-float { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-12px) rotate(4deg); } }
         @keyframes wave-move { 0%, 100% { transform: translateX(-5px); } 50% { transform: translateX(5px); } }
         .ending-active { background: linear-gradient(135deg, #e0f2fe 0%, #f5f5f7 50%, #f0fdf4 100%) !important; }
 
-        #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; }
+        #edit-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; z-index: 10000; -webkit-app-region: no-drag; }
         .modal-content { background: var(--bg-color); padding: 35px; border-radius: 28px; box-shadow: var(--nm-out); width: 240px; }
         .modal-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--point-blue); text-align: center; font-size: 18px; font-weight: 700; outline: none; color: #333; }
     </style>
@@ -151,7 +166,6 @@
     </div>
 
     <script>
-        // [강력 수정] 페이지가 로드될 때 이전 'tasks' 데이터를 무조건 삭제합니다.
         localStorage.removeItem('15x3_tasks_only'); 
         
         let tasks = ["", "", ""];
@@ -187,7 +201,6 @@
         const arrowIcon = `<div class="skip-btn-wrap" onclick="nextPhase(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>`;
 
         window.onload = function() {
-            // 시간 설정은 유지하되, 할 일(tasks)은 무조건 초기화
             const saved = localStorage.getItem('15x3_config');
             if (saved) {
                 const parsed = JSON.parse(saved);
@@ -376,10 +389,15 @@
             localStorage.setItem('15x3_config', JSON.stringify({ focusTime, restTime }));
         }
         
+        /* [수정] 윈도우 앱 종료 로직 강화 */
         function exitApp() {
             killSound();
+            // ZEP 환경 종료 시도
             window.parent.postMessage({ type: 'close' }, '*');
-            if (window.location.hostname !== 'zep.us') { alert("앱 종료 (ZEP 환경에서만 실제로 닫힙니다)"); }
+            // EXE 앱(Nativefier/Electron) 종료 시도
+            setTimeout(() => {
+                window.close();
+            }, 100);
         }
     </script>
 </body>
