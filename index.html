@@ -22,17 +22,23 @@
             font-family: 'Pretendard', -apple-system, sans-serif; margin: 0; padding: 0;
             height: 100vh; width: 100vw; display: flex; flex-direction: column; align-items: center;
             overflow: hidden; user-select: none; transition: background 1.5s ease;
+            /* 배경을 잡고 창을 이동할 수 있게 설정 */
+            -webkit-app-region: drag;
         }
 
-        /* 드래그 방지 설정 */
+        /* 상단 메뉴 버튼 영역 - 클릭이 가능하도록 no-drag 설정 */
         .top-menu { 
-            position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9500; 
-            -webkit-app-region: no-drag; 
+            position: fixed; top: 20px; right: 25px; display: flex; gap: 12px; z-index: 9999; 
+            -webkit-app-region: no-drag !important; 
         }
-        .menu-btn { width: 34px; height: 34px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #777; transition: 0.2s; border: none; outline: none; }
+        .menu-btn { 
+            width: 34px; height: 34px; border-radius: 50%; background: var(--bg-color); 
+            box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; color: #777; transition: 0.2s; border: none; outline: none;
+            -webkit-app-region: no-drag !important;
+        }
         .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
         
-        /* 헤더 영역을 창 이동 손잡이로 설정 */
         .header { 
             margin-top: 0; 
             padding-top: 55px; 
@@ -46,7 +52,11 @@
         .header.locked { pointer-events: none; cursor: default; -webkit-app-region: no-drag; }
         .header h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #333; display: inline-block; -webkit-app-region: no-drag; }
 
-        .circle-container { position: relative; width: 280px; height: 280px; margin-top: 40px; display: flex; align-items: center; justify-content: center; -webkit-app-region: no-drag; }
+        .circle-container { 
+            position: relative; width: 280px; height: 280px; margin-top: 40px; 
+            display: flex; align-items: center; justify-content: center; 
+            -webkit-app-region: no-drag; 
+        }
         .circle-container.hidden { display: none !important; opacity: 0; }
         
         .outer-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); }
@@ -55,7 +65,7 @@
         .divider-container { position: absolute; width: 90%; height: 90%; border-radius: 50%; z-index: 100; pointer-events: none; -webkit-mask-image: radial-gradient(circle 35px, transparent 100%, black 100%); }
         .divider { position: absolute; width: 1.5px; height: 50%; background: rgba(255,255,255,0.8); left: 50%; top: 0; transform-origin: bottom center; }
         
-        .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; }
+        .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; -webkit-app-region: no-drag; }
         .click-area.c1 { transform: rotate(-60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c2 { transform: rotate(60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c3 { transform: rotate(180deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
@@ -71,7 +81,7 @@
 
         .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-        .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: default; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: default; top: 50%; left: 50%; transform: translate(-50%, -50%); -webkit-app-region: no-drag; }
         .center-btn.ready { cursor: pointer; }
         .center-btn.ready:hover { background: #ffffff; box-shadow: var(--nm-btn-hover); transform: translate(-50%, -50%) scale(1.05); }
 
@@ -81,8 +91,8 @@
         @keyframes dot-blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
 
         #config-mode { display: none; flex-direction: column; align-items: center; margin-top: 40px; -webkit-app-region: no-drag; }
-        .knob-outer { position: relative; width: 220px; height: 220px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); display: flex; align-items: center; justify-content: center; cursor: grab; }
-        .knob-inner { position: absolute; width: 140px; height: 140px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; cursor: pointer; transition: 0.2s; }
+        .knob-outer { position: relative; width: 220px; height: 220px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); display: flex; align-items: center; justify-content: center; cursor: grab; -webkit-app-region: no-drag; }
+        .knob-inner { position: absolute; width: 140px; height: 140px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; cursor: pointer; transition: 0.2s; -webkit-app-region: no-drag; }
         .knob-indicator { position: absolute; top: 15px; width: 4px; height: 15px; background: var(--point-blue); border-radius: 2px; transform-origin: 50% 95px; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none; }
         .knob-ticks { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: 5; }
         .tick-hitbox { position: absolute; width: 30px; height: 30px; left: 50%; top: 0; transform-origin: 15px 110px; cursor: pointer; display: flex; justify-content: center; align-items: flex-start; }
@@ -95,7 +105,7 @@
         .phase-indicator { position: absolute; bottom: 100px; font-size: 14px; font-weight: 800; color: #aaa; letter-spacing: 2px; z-index: 9100; display: flex; align-items: center; justify-content: center; height: 50px; -webkit-app-region: no-drag; }
         .focus-text-container { position: relative; z-index: 9100; cursor: pointer; text-align: center; height: 100px; display: flex; align-items: center; justify-content: center; margin-top: -80px; -webkit-app-region: no-drag; }
         .focus-task-text { font-size: 42px; font-weight: 900; color: #333; transition: filter 0.5s ease; filter: blur(8px); white-space: nowrap; }
-        .skip-btn-wrap { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444; transition: 0.2s; }
+        .skip-btn-wrap { width: 44px; height: 44px; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444; transition: 0.2s; -webkit-app-region: no-drag; }
         .skip-btn-wrap:hover { transform: scale(1.1); box-shadow: var(--nm-btn-hover); color: #000; }
 
         #boat-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: none; z-index: 9800; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; -webkit-app-region: drag; }
@@ -388,19 +398,10 @@
             localStorage.setItem('15x3_config', JSON.stringify({ focusTime, restTime }));
         }
         
-        /* [종료 기능 최적화] */
         function exitApp() {
             killSound();
-            // 1. ZEP 환경 종료 시도
             window.parent.postMessage({ type: 'close' }, '*');
-            // 2. 윈도우 앱 및 브라우저 창 닫기 시도 (setTimeout으로 순차 진행)
-            setTimeout(() => {
-                window.close();
-                // 3. 브라우저 보안으로 안 닫힐 경우 대비하여 현재 페이지 비우기
-                if (!window.closed) {
-                   // 창이 닫히지 않는 브라우저 환경에서는 특별한 액션을 하지 않습니다.
-                }
-            }, 100);
+            setTimeout(() => { window.close(); }, 100);
         }
     </script>
 </body>
