@@ -167,11 +167,20 @@
         }
 
         // [수정] 깃허브의 대문자 .WAV 파일명을 지원하도록 수정
+        // [최종 수정] 깃허브 경로를 직접 지정해서 소리를 불러오는 방식
         function playZepSound(fileName) {
-            // 유빈아, 깃허브에 올라간 파일명이 대문자라서 .WAV로 수정했어!
-            const audio = new Audio(fileName + '.WAV');
+            // 유빈이의 깃허브 저장소 주소를 직접 입력했어. 
+            // 파일명이 대문자든 소문자든 상관없이 .wav로 시도해볼게.
+            const audioUrl = `https://jeonyoobin.github.io/15X3/${fileName}.wav`;
+            console.log("재생 시도:", audioUrl);
+            
+            const audio = new Audio(audioUrl);
             activeAudios.push(audio);
-            audio.play().catch(e => console.log("재생 실패: 화면을 먼저 클릭해주세요."));
+            
+            audio.play().catch(e => {
+                console.log("클릭 전이라 재생이 막혔어! 화면을 한번만 눌러줘.");
+            });
+            
             audio.onended = () => { activeAudios = activeAudios.filter(a => a !== audio); };
         }
 
