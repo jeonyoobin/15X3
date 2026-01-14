@@ -91,7 +91,7 @@
         .modal-input { width: 100%; background: transparent; border: none; border-bottom: 2px solid var(--point-blue); text-align: center; font-size: 18px; font-weight: 700; outline: none; color: #333; }
     </style>
 </head>
-<body>
+<body onclick="initAudio()">
     <div id="boat-container">
         <svg class="boat-icon" viewBox="0 0 24 24"><path d="M4 18h16l1-4H3l1 4zM12 2v12m0-12L5 9h7"/></svg>
         <svg class="wave-icon" viewBox="0 0 100 20"><path d="M0 10 Q25 0 50 10 T100 10 L100 20 L0 20 Z"/></svg>
@@ -152,34 +152,37 @@
         let currentRotation = 0; let isEnding = false;
         let endingTimer = null;
 
-        // 효과음 재생 객체들 (현재 실행 중인 소리를 추적하기 위함)
         let activeAudios = [];
+        let audioContextInitialized = false;
 
-        // [수정] 깃허브에서 직접 소리 재생하는 방식
-        function playZepSound(fileName) {
-            const audio = new Audio(fileName + '.wav');
-            activeAudios.push(audio);
-            audio.play().catch(e => console.log("소리 재생을 위해 화면을 한 번 클릭해주세요."));
-            
-            // 재생이 끝나면 배열에서 제거
-            audio.onended = () => {
-                activeAudios = activeAudios.filter(a => a !== audio);
-            };
+        // 브라우저 오디오 제한을 풀기 위한 초기화 함수
+        function initAudio() {
+            if (audioContextInitialized) return;
+            // 빈 소리를 한 번 재생해서 잠금을 해제함
+            const audio = new Audio();
+            audio.play().then(() => {
+                audioContextInitialized = true;
+                console.log("Audio Unlocked");
+            }).catch(() => {});
         }
 
-        // [수정] 모든 소리 즉시 정지
+        // [수정] 깃허브의 대문자 .WAV 파일명을 지원하도록 수정
+        function playZepSound(fileName) {
+            // 유빈아, 깃허브에 올라간 파일명이 대문자라서 .WAV로 수정했어!
+            const audio = new Audio(fileName + '.WAV');
+            activeAudios.push(audio);
+            audio.play().catch(e => console.log("재생 실패: 화면을 먼저 클릭해주세요."));
+            audio.onended = () => { activeAudios = activeAudios.filter(a => a !== audio); };
+        }
+
         function killSound() {
-            activeAudios.forEach(audio => {
-                audio.pause();
-                audio.currentTime = 0;
-            });
+            activeAudios.forEach(audio => { audio.pause(); audio.currentTime = 0; });
             activeAudios = [];
         }
 
         const arrowIcon = `<div class="skip-btn-wrap" onclick="nextPhase(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>`;
 
         window.onload = function() {
-            // 로컬 스토리지에서 데이터 로드 (깃허브 페이지용)
             const saved = localStorage.getItem('15x3_data');
             if (saved) {
                 const parsed = JSON.parse(saved);
@@ -362,19 +365,14 @@
         document.getElementById('edit-modal').onclick = function(e) { if(e.target === this) closeEdit(); };
         
         function save() {
-            // 깃허브 페이지를 위한 로컬 스토리지 저장
             localStorage.setItem('15x3_data', JSON.stringify({ tasks, focusTime, restTime }));
-            // ZEP을 위한 메시지 전송
             window.parent.postMessage({ type: 'saveData', data: { tasks, focusTime, restTime } }, '*');
         }
         
         function exitApp() {
             killSound();
             window.parent.postMessage({ type: 'close' }, '*');
-            // 깃허브 웹에서 테스트 시 알림
-            if (window.location.hostname !== 'zep.us') {
-                alert("앱 종료 (ZEP 환경에서만 실제로 닫힙니다)");
-            }
+            if (window.location.hostname !== 'zep.us') { alert("앱 종료 (ZEP 환경에서만 실제로 닫힙니다)"); }
         }
     </script>
 </body>
