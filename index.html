@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>15 X 3 - by 전유빈</title>
+    <title>15 X 3 - 유빈</title>
     <style>
         :root {
             --bg-color: #f5f5f7;
@@ -41,22 +41,19 @@
         .divider-container { position: absolute; width: 90%; height: 90%; border-radius: 50%; z-index: 100; pointer-events: none; -webkit-mask-image: radial-gradient(circle 35px, transparent 100%, black 100%); }
         .divider { position: absolute; width: 1.5px; height: 50%; background: rgba(255,255,255,0.8); left: 50%; top: 0; transform-origin: bottom center; }
         
-        /* 클릭 영역과 텍스트 호버 효과 연동 */
         .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; }
         .click-area.c1 { transform: rotate(-60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c2 { transform: rotate(60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c3 { transform: rotate(180deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
 
-        /* [수정] 호버링 효과 추가 및 밀림 방지 */
-        .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 80px; transition: all 0.3s ease; }
-        .slot-content.t1 { top: 90px; left: 35px; }
-        .slot-content.t2 { top: 90px; right: 35px; }
-        .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); }
+        .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 80px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .slot-content.t1 { top: 90px; left: 35px; transform-origin: center; }
+        .slot-content.t2 { top: 90px; right: 35px; transform-origin: center; }
+        .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); transform-origin: top center; }
 
-        /* 클릭 영역 호버 시 텍스트 변화 (유빈아, 여기가 호버 효과 핵심이야!) */
-        .click-area.c1:hover ~ .t1 { color: var(--point-blue); transform: scale(1.1); }
-        .click-area.c2:hover ~ .t2 { color: var(--point-blue); transform: scale(1.1); }
-        .click-area.c3:hover ~ .t3 { color: var(--point-blue); transform: translateX(-50%) scale(1.1); } /* t3는 translateX 유지하며 스케일링 */
+        .click-area.c1:hover ~ .t1 { color: var(--point-blue); transform: scale(1.15); }
+        .click-area.c2:hover ~ .t2 { color: var(--point-blue); transform: scale(1.15); }
+        .click-area.c3:hover ~ .t3 { color: var(--point-blue); transform: translateX(-50%) scale(1.15); }
 
         .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
@@ -154,6 +151,9 @@
     </div>
 
     <script>
+        // [강력 수정] 페이지가 로드될 때 이전 'tasks' 데이터를 무조건 삭제합니다.
+        localStorage.removeItem('15x3_tasks_only'); 
+        
         let tasks = ["", "", ""];
         let focusTime = 15; let restTime = 3;
         let currentIdx = -1; let remainTime = 0;
@@ -187,14 +187,15 @@
         const arrowIcon = `<div class="skip-btn-wrap" onclick="nextPhase(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>`;
 
         window.onload = function() {
-            const saved = localStorage.getItem('15x3_data');
+            // 시간 설정은 유지하되, 할 일(tasks)은 무조건 초기화
+            const saved = localStorage.getItem('15x3_config');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                tasks = parsed.tasks || ["", "", ""];
                 focusTime = parsed.focusTime || 15;
                 restTime = parsed.restTime || 3;
-                updateHeader(); render();
             }
+            updateHeader(); 
+            render();
         };
 
         function updateTicks() {
@@ -210,6 +211,7 @@
         }
 
         function updateHeader() { document.getElementById('header-title').innerText = `${focusTime} X ${restTime}`; }
+        
         function render() {
             let count = 0;
             const container = document.getElementById('main-btn-container');
@@ -247,7 +249,7 @@
                 restTime = tempVal; isConfiguring = false;
                 document.getElementById('config-mode').style.display = 'none';
                 document.getElementById('main-widget').classList.remove('hidden');
-                updateHeader(); save();
+                updateHeader(); saveConfig();
             }
         }
 
@@ -288,6 +290,7 @@
         }
 
         function handleCenterClick() { if (tasks.filter(t => t.trim() !== "").length === 3) startTimer(); }
+        
         function startTimer() {
             playZepSound('A'); currentPhase = 0; isEnding = false;
             const PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
@@ -352,7 +355,7 @@
             killSound();
             if (endingTimer) clearTimeout(endingTimer);
             if (myInterval) clearInterval(myInterval);
-            tasks = ["", "", ""]; save();
+            tasks = ["", "", ""]; 
             const widget = document.getElementById('main-widget');
             widget.classList.remove('hidden');
             document.getElementById('main-header').style.opacity = '1';
@@ -360,17 +363,17 @@
             document.getElementById('timer-screen').style.display = 'none';
             document.getElementById('boat-container').style.display = 'none';
             document.body.classList.remove('ending-active');
-            isPaused = false; isEnding = false; render();
+            isPaused = false; isEnding = false; 
+            render();
         }
 
         function openEdit(idx) { currentIdx = idx; document.getElementById('modal-input').value = tasks[idx]; document.getElementById('edit-modal').style.display = 'flex'; setTimeout(()=>document.getElementById('modal-input').focus(),100); }
-        function closeEdit() { tasks[currentIdx] = document.getElementById('modal-input').value; document.getElementById('edit-modal').style.display = 'none'; render(); save(); }
+        function closeEdit() { tasks[currentIdx] = document.getElementById('modal-input').value; document.getElementById('edit-modal').style.display = 'none'; render(); }
         function handleEnter(e) { if (e.key === 'Enter') closeEdit(); }
         document.getElementById('edit-modal').onclick = function(e) { if(e.target === this) closeEdit(); };
         
-        function save() {
-            localStorage.setItem('15x3_data', JSON.stringify({ tasks, focusTime, restTime }));
-            window.parent.postMessage({ type: 'saveData', data: { tasks, focusTime, restTime } }, '*');
+        function saveConfig() {
+            localStorage.setItem('15x3_config', JSON.stringify({ focusTime, restTime }));
         }
         
         function exitApp() {
