@@ -45,7 +45,8 @@
             font-size: 14px; font-weight: 800; color: #888; transition: 0.2s;
             cursor: pointer !important; pointer-events: auto !important;
         }
-        .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
+        /* [수정] 정지 버튼과 X 버튼의 호버 효과를 동일하게 (색상 변경 삭제) */
+        .menu-btn:hover { transform: scale(1.1); box-shadow: var(--nm-btn-hover); color: #888; }
         
         .timer-drag { 
             position: absolute; top: 0; left: 0; 
@@ -73,15 +74,14 @@
         .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 80px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .slot-content.t1 { top: 90px; left: 35px; }
         .slot-content.t2 { top: 90px; right: 35px; }
-        /* [수정] Task 3 위치 고정 및 호버 시 밀림 방지 */
         .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); transform-origin: center bottom; }
         
         .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
-        /* [복구] 호버링 효과 */
-        .click-area.c1:hover ~ .t1 { transform: scale(1.15); color: var(--point-blue); }
-        .click-area.c2:hover ~ .t2 { transform: scale(1.15); color: var(--point-blue); }
-        .click-area.c3:hover ~ .t3 { transform: translateX(-50%) scale(1.15); color: var(--point-blue); }
+        /* [수정] Task 호버링 효과 - 선택 영역 마우스 오버 시 텍스트 변화 */
+        .click-area.c1:hover + .t1 { transform: scale(1.15); color: var(--point-blue); }
+        .click-area.c2:hover + .t2 { transform: scale(1.15); color: var(--point-blue); }
+        .click-area.c3:hover + .t3 { transform: translateX(-50%) scale(1.15); color: var(--point-blue); }
 
         .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .center-btn.ready { cursor: pointer; }
@@ -350,7 +350,6 @@
             else {
                 if (isRest) { display.style.filter = "blur(0px)"; noise.style.opacity = "0"; screen.style.background = "var(--bg-clear)"; }
                 else { 
-                    // [수정] 스킵 시 찰나의 선명함 방지: remainTime이 0일 때는 이전 상태 유지
                     if (remainTime > 0) {
                         display.style.filter = `blur(${(1-progress)*8}px)`; 
                         noise.style.opacity = (1-progress)*0.4;
@@ -367,8 +366,6 @@
         function nextPhase(e, PHASES) {
             if (e) e.stopPropagation();
             if (!PHASES) PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
-            
-            // [수정] 스킵 버튼 클릭 시 텍스트가 선명해지는 것을 막기 위해 강제로 블러 적용
             const display = document.getElementById('focus-task-display');
             if (currentPhase % 2 === 0) display.style.filter = "blur(8px)";
 
