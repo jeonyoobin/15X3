@@ -41,15 +41,23 @@
         .divider-container { position: absolute; width: 90%; height: 90%; border-radius: 50%; z-index: 100; pointer-events: none; -webkit-mask-image: radial-gradient(circle 35px, transparent 100%, black 100%); }
         .divider { position: absolute; width: 1.5px; height: 50%; background: rgba(255,255,255,0.8); left: 50%; top: 0; transform-origin: bottom center; }
         
+        /* 클릭 영역과 텍스트 호버 효과 연동 */
         .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; }
         .click-area.c1 { transform: rotate(-60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c2 { transform: rotate(60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c3 { transform: rotate(180deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
 
-        .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 60px; transition: color 0.2s ease; }
-        .slot-content.t1 { top: 90px; left: 45px; transform: none; }
-        .slot-content.t2 { top: 90px; right: 45px; transform: none; }
+        /* [수정] 호버링 효과 추가 및 밀림 방지 */
+        .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 80px; transition: all 0.3s ease; }
+        .slot-content.t1 { top: 90px; left: 35px; }
+        .slot-content.t2 { top: 90px; right: 35px; }
         .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); }
+
+        /* 클릭 영역 호버 시 텍스트 변화 (유빈아, 여기가 호버 효과 핵심이야!) */
+        .click-area.c1:hover ~ .t1 { color: var(--point-blue); transform: scale(1.1); }
+        .click-area.c2:hover ~ .t2 { color: var(--point-blue); transform: scale(1.1); }
+        .click-area.c3:hover ~ .t3 { color: var(--point-blue); transform: translateX(-50%) scale(1.1); } /* t3는 translateX 유지하며 스케일링 */
+
         .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
         .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; cursor: default; top: 50%; left: 50%; transform: translate(-50%, -50%); }
@@ -114,9 +122,11 @@
             <div class="divider" style="transform:rotate(120deg)"></div>
             <div class="divider" style="transform:rotate(240deg)"></div>
         </div>
+        
         <div class="click-area c1" onclick="openEdit(0)"></div><div class="slot-content t1" id="txt-0">TASK 1</div>
         <div class="click-area c2" onclick="openEdit(1)"></div><div class="slot-content t2" id="txt-1">TASK 2</div>
         <div class="click-area c3" onclick="openEdit(2)"></div><div class="slot-content t3" id="txt-2">TASK 3</div>
+        
         <div class="center-btn" id="main-btn-container" onclick="handleCenterClick()"></div>
     </div>
 
@@ -155,32 +165,17 @@
         let activeAudios = [];
         let audioContextInitialized = false;
 
-        // 브라우저 오디오 제한을 풀기 위한 초기화 함수
         function initAudio() {
             if (audioContextInitialized) return;
-            // 빈 소리를 한 번 재생해서 잠금을 해제함
             const audio = new Audio();
-            audio.play().then(() => {
-                audioContextInitialized = true;
-                console.log("Audio Unlocked");
-            }).catch(() => {});
+            audio.play().then(() => { audioContextInitialized = true; }).catch(() => {});
         }
 
-        // [수정] 깃허브의 대문자 .WAV 파일명을 지원하도록 수정
-        // [최종 수정] 깃허브 경로를 직접 지정해서 소리를 불러오는 방식
         function playZepSound(fileName) {
-            // 유빈이의 깃허브 저장소 주소를 직접 입력했어. 
-            // 파일명이 대문자든 소문자든 상관없이 .wav로 시도해볼게.
             const audioUrl = `https://jeonyoobin.github.io/15X3/${fileName}.wav`;
-            console.log("재생 시도:", audioUrl);
-            
             const audio = new Audio(audioUrl);
             activeAudios.push(audio);
-            
-            audio.play().catch(e => {
-                console.log("클릭 전이라 재생이 막혔어! 화면을 한번만 눌러줘.");
-            });
-            
+            audio.play().catch(e => {});
             audio.onended = () => { activeAudios = activeAudios.filter(a => a !== audio); };
         }
 
