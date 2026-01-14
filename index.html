@@ -24,65 +24,38 @@
             overflow: hidden; user-select: none; transition: background 1.5s ease;
         }
 
-        /* [수정] 드래그 핸들: 버튼 영역(오른쪽 110px)을 물리적으로 제외 */
+        /* 드래그 핸들 */
         .drag-handle {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: calc(100% - 110px); 
-            height: 70px;
-            z-index: 9999; 
-            -webkit-app-region: drag !important;
-            cursor: move; /* 드래그 가능함을 알리는 포인터 */
+            position: fixed; top: 0; left: 0;
+            width: calc(100% - 110px); height: 70px;
+            z-index: 9999; -webkit-app-region: drag !important; cursor: move;
         }
 
-        /* [수정] 상단 메뉴: 드래그 핸들과 겹치지 않게 배치 및 최상단 우선순위 */
+        /* 상단 메뉴 */
         .top-menu { 
-            position: fixed; 
-            top: 20px; 
-            right: 25px; 
-            display: flex; 
-            gap: 12px; 
-            z-index: 10005; 
+            position: fixed; top: 20px; right: 25px; 
+            display: flex; gap: 12px; z-index: 10005; 
             -webkit-app-region: no-drag !important;
         }
 
         .menu-btn { 
-            width: 32px; height: 32px;
-            border-radius: 10px;
-            background: var(--bg-color);
-            box-shadow: var(--nm-btn);
+            width: 32px; height: 32px; border-radius: 10px;
+            background: var(--bg-color); box-shadow: var(--nm-btn);
             display: flex; align-items: center; justify-content: center;
-            font-size: 14px; font-weight: 800;
-            color: #888; transition: 0.2s;
-            cursor: pointer !important;
-            pointer-events: auto !important;
+            font-size: 14px; font-weight: 800; color: #888; transition: 0.2s;
+            cursor: pointer !important; pointer-events: auto !important;
         }
         .menu-btn:hover { transform: scale(1.1); color: var(--point-blue); box-shadow: var(--nm-btn-hover); }
         
-        /* 타이머 화면 드래그 영역 분리 */
         .timer-drag { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: calc(100% - 110px); 
-            height: 80px; 
-            -webkit-app-region: drag !important; 
-            z-index: 9005; 
-            cursor: move;
+            position: absolute; top: 0; left: 0; 
+            width: calc(100% - 110px); height: 80px; 
+            -webkit-app-region: drag !important; z-index: 9005; cursor: move;
         }
 
-        /* 헤더 부분 */
-        .header { 
-            margin-top: 0; 
-            padding-top: 55px; 
-            width: 100%;
-            text-align: center; 
-            transition: opacity 0.3s; 
-        }
+        .header { margin-top: 0; padding-top: 55px; width: 100%; text-align: center; transition: opacity 0.3s; }
         .header h1 { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin: 0; color: #333; }
 
-        /* 이하 기존 스타일 유지 */
         .circle-container { position: relative; width: 280px; height: 280px; margin-top: 40px; display: flex; align-items: center; justify-content: center; }
         .circle-container.hidden { display: none !important; opacity: 0; }
         .outer-ring { position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--bg-color); box-shadow: var(--nm-out); }
@@ -90,15 +63,26 @@
         .color-layer { position: absolute; width: 100%; height: 100%; border-radius: 50%; z-index: 2; pointer-events: none; opacity: 0.7; }
         .divider-container { position: absolute; width: 90%; height: 90%; border-radius: 50%; z-index: 100; pointer-events: none; -webkit-mask-image: radial-gradient(circle 35px, transparent 100%, black 100%); }
         .divider { position: absolute; width: 1.5px; height: 50%; background: rgba(255,255,255,0.8); left: 50%; top: 0; transform-origin: bottom center; }
+        
+        /* 호버 이펙트 영역 */
         .click-area { position: absolute; width: 100%; height: 100%; z-index: 30; cursor: pointer; }
         .click-area.c1 { transform: rotate(-60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c2 { transform: rotate(60deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
         .click-area.c3 { transform: rotate(180deg); clip-path: polygon(50% 50%, -20% -20%, 120% -20%, 50% 50%); }
+
         .slot-content { position: absolute; font-size: 13px; font-weight: 800; color: #bbb; pointer-events: none; text-align: center; z-index: 40; width: 80px; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .slot-content.t1 { top: 90px; left: 35px; }
         .slot-content.t2 { top: 90px; right: 35px; }
-        .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); }
+        /* [수정] Task 3 위치 고정 및 호버 시 밀림 방지 */
+        .slot-content.t3 { bottom: 55px; left: 50%; transform: translateX(-50%); transform-origin: center bottom; }
+        
         .active-text { color: #ffffff !important; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
+        /* [복구] 호버링 효과 */
+        .click-area.c1:hover ~ .t1 { transform: scale(1.15); color: var(--point-blue); }
+        .click-area.c2:hover ~ .t2 { transform: scale(1.15); color: var(--point-blue); }
+        .click-area.c3:hover ~ .t3 { transform: translateX(-50%) scale(1.15); color: var(--point-blue); }
+
         .center-btn { position: absolute; width: 70px; height: 70px; background: var(--bg-color); border-radius: 50%; z-index: 50; box-shadow: var(--nm-btn); display: flex; align-items: center; justify-content: center; transition: 0.3s; top: 50%; left: 50%; transform: translate(-50%, -50%); }
         .center-btn.ready { cursor: pointer; }
         .center-btn.ready:hover { background: #ffffff; box-shadow: var(--nm-btn-hover); transform: translate(-50%, -50%) scale(1.05); }
@@ -197,9 +181,6 @@
     </div>
 
     <script>
-        // 스크립트 내용은 유빈님이 주신 코드와 동일하게 유지하되, 
-        // exitApp 함수만 데스크톱 환경에 맞춰 조금 보강했습니다.
-        
         localStorage.removeItem('15x3_tasks_only'); 
         let tasks = ["", "", ""];
         let focusTime = 15; let restTime = 3;
@@ -357,15 +338,25 @@
             const isRest = currentPhase % 2 !== 0;
             const total = PHASES[currentPhase];
             const progress = 1 - (remainTime / total);
+            
             indicator.innerHTML = isRest ? arrowIcon : `${Math.floor(currentPhase/2) + 1} / 3`;
+            
             if (isPaused || isHoveringTime) {
                 const m = Math.floor(remainTime / 60); const s = remainTime % 60;
                 display.innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
             } else { display.innerText = isRest ? "REST" : tasks[Math.floor(currentPhase/2)]; }
+            
             if (isPaused) { display.style.filter = "blur(8px)"; noise.style.opacity = "0.3"; }
             else {
                 if (isRest) { display.style.filter = "blur(0px)"; noise.style.opacity = "0"; screen.style.background = "var(--bg-clear)"; }
-                else { display.style.filter = `blur(${(1-progress)*8}px)`; noise.style.opacity = (1-progress)*0.4; screen.style.background = progress > 0.8 ? 'var(--bg-clear)' : 'var(--bg-color)'; }
+                else { 
+                    // [수정] 스킵 시 찰나의 선명함 방지: remainTime이 0일 때는 이전 상태 유지
+                    if (remainTime > 0) {
+                        display.style.filter = `blur(${(1-progress)*8}px)`; 
+                        noise.style.opacity = (1-progress)*0.4;
+                        screen.style.background = progress > 0.8 ? 'var(--bg-clear)' : 'var(--bg-color)';
+                    }
+                }
             }
         }
 
@@ -376,6 +367,11 @@
         function nextPhase(e, PHASES) {
             if (e) e.stopPropagation();
             if (!PHASES) PHASES = [focusTime * 60, restTime * 60, focusTime * 60, restTime * 60, focusTime * 60];
+            
+            // [수정] 스킵 버튼 클릭 시 텍스트가 선명해지는 것을 막기 위해 강제로 블러 적용
+            const display = document.getElementById('focus-task-display');
+            if (currentPhase % 2 === 0) display.style.filter = "blur(8px)";
+
             currentPhase++;
             if (currentPhase >= PHASES.length) { finishCelebration(); }
             else { remainTime = PHASES[currentPhase]; playZepSound(currentPhase % 2 !== 0 ? 'C' : 'D'); updateDisplay(PHASES); }
@@ -414,13 +410,10 @@
         function handleEnter(e) { if (e.key === 'Enter') closeEdit(); }
         document.getElementById('edit-modal').onclick = function(e) { if(e.target === this) closeEdit(); };
         
-        function saveConfig() {
-            localStorage.setItem('15x3_config', JSON.stringify({ focusTime, restTime }));
-        }
+        function saveConfig() { localStorage.setItem('15x3_config', JSON.stringify({ focusTime, restTime })); }
         
         function exitApp() {
             killSound();
-            // Electron 환경 종료를 위한 표준 방식
             if (window.process && window.process.type === 'renderer') {
                 const remote = require('@electron/remote');
                 remote.getCurrentWindow().close();
